@@ -31,7 +31,7 @@ struct JSONNode: Identifiable, Hashable {
     var displayValue: String {
         switch value {
         case .string(let s): return "\"\(s)\""
-        case .number(let n): return "\(n)"
+        case .number(let n): return n.stringValue
         case .bool(let b): return b ? "true" : "false"
         case .null: return "null"
         case .array: return "[\(children.count) items]"
@@ -63,7 +63,8 @@ struct JSONNode: Identifiable, Hashable {
 
 enum JSONValue {
     case string(String)
-    case number(Double)
+    // Preserve Foundation's parsed number instead of rounding integers through Double.
+    case number(NSNumber)
     case bool(Bool)
     case null
     case array

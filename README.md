@@ -64,6 +64,64 @@ The right panel is a full-featured text editor:
 - Cursor position syncs with the tree view
 - Validation indicator shows JSON status in real-time
 
+### Structure Editor (personal fork)
+
+The three panes are **tree navigation | JSON source editor | structure editor**.
+Use the **Structure Editor** toolbar button (right-sidebar icon) to toggle the
+third pane. The **Tree Sidebar** button (left-sidebar icon) hides or shows the
+left pane independently. Both visibility preferences persist across launches.
+Drag the dividers to resize the panes.
+
+- Objects and arrays collapse to `{…}` and `[…]`; use the plus/minus buttons to expand or collapse them.
+- Search keys or values in the preview. Matching branches expand automatically;
+  use the arrows or Enter to move between matching rows. Clear search to restore
+  manual folding. The count represents matching rows, not individual text occurrences.
+- Click a field name or scalar value to edit it in place. Press **Return** (or ✓)
+  to commit and **Escape** (or ×) to discard. Values may be strings, numbers, booleans or null;
+  enter strings without surrounding quotes. Use the source editor to add/remove
+  fields or replace whole objects and arrays.
+- Each committed change replaces only the selected token in the source, marks the
+  document modified, and supports undo/redo. Unrelated formatting and number tokens
+  are preserved. Duplicate keys and stale edits are rejected rather than overwriting
+  another field. Invalid JSON hides the structure view until parsing succeeds.
+- Folding and searching do not modify the source or saved JSON.
+- Tree and preview numbers retain Foundation's parsed numeric representation,
+  avoiding the former conversion of all numbers to `Double`. Original number
+  spelling and arbitrary-precision parsing are not guaranteed.
+
+### Build the personal app locally
+
+With Xcode installed:
+
+```sh
+bash scripts/test-local.sh          # Regression tests
+bash scripts/build-local.sh test    # Install ~/Applications/JSONav Personal Test.app
+bash scripts/build-local.sh release # Install /Applications/JSONav Personal.app
+```
+
+The default channel is `test`. Both channels use optimized Release builds with
+local ad-hoc signatures and sandbox/user-selected-file access, without debug
+entitlements. Their separate bundle identifiers isolate preferences and sandbox
+data; the release identifier stays unchanged from the earlier personal app.
+Quit the target app before installation to protect unsaved input. Installing
+release also archives the former `~/Applications/JSONav Personal.app`.
+
+Intermediate bundles and previous installations stay in `build/*.noindex`.
+Open the installed apps directly from Applications; no build-folder navigation is
+needed. The script does not change the system's selected developer directory.
+
+### Personal fork maintenance
+
+- `main` retains the upstream baseline; keep personal changes on `codex/personal`.
+- Commit and test changes on `codex/personal`, then install the test channel for
+  interactive checks. Build the release channel from the validated commit.
+- Set the personal version in `config/PersonalVersion.txt`. Mark a validated
+  stable commit with an annotated tag such as `personal-v0.1.0`.
+- Future upstream updates should first update `main`, then merge `main` into
+  `codex/personal` and resolve any conflicts before testing again.
+- Branches and tags are local until explicitly pushed. These local builds do not
+  create a GitHub Release or publish a downloadable asset.
+
 ## Project Structure
 
 ```

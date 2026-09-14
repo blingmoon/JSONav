@@ -16,7 +16,7 @@ class JSONParser {
             if CFBooleanGetTypeID() == CFGetTypeID(num) {
                 return JSONNode(key: key, value: .bool(num.boolValue), children: [], path: currentPath)
             }
-            return JSONNode(key: key, value: .number(num.doubleValue), children: [], path: currentPath)
+            return JSONNode(key: key, value: .number(num), children: [], path: currentPath)
         case let arr as [Any]:
             let children = arr.enumerated().map { nodeFrom(value: $1, key: "[\($0)]", path: currentPath) }
             return JSONNode(key: key, value: .array, children: children, path: currentPath)

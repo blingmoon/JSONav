@@ -28,6 +28,9 @@ struct JSONEditorApp: App {
             ContentView(appearanceMode: $appearanceMode)
                 .preferredColorScheme(appearanceMode.colorScheme)
         }
+        // The personal app should open its editor, not only its menu-bar item.
+        .defaultLaunchBehavior(.presented)
+        .defaultSize(width: 1300, height: 760)
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified(showsTitle: true))
         .commands {

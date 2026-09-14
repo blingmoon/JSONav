@@ -16,6 +16,10 @@ struct ContentView: View {
     @State private var showUnsavedAlert = false
     @State private var pendingFileURL: URL? = nil
     @State private var editorRefreshID = UUID()
+    @State private var pendingFieldEdit: JSONSourceEdit?
+    @State private var fieldEditError: String?
+    @AppStorage("showTreeSidebar") private var showTreeSidebar = true
+    @AppStorage("showStructureEditor") private var showStructureEditor = true
     
     @Binding var appearanceMode: AppearanceMode
     
@@ -57,15 +61,20 @@ struct ContentView: View {
     }
     
     private var mainContent: some View {
-        GeometryReader { geometry in
-            HStack(spacing: 0) {
+        HSplitView {
+            if showTreeSidebar {
                 leftPanel
-                    .frame(width: geometry.size.width * 0.28)
-                
-                Divider()
-                
-                rightPanel
-                    .frame(maxWidth: .infinity)
+                    .frame(minWidth: 160, idealWidth: 230, maxWidth: .infinity, maxHeight: .infinity)
+            }
+            rightPanel
+                .frame(minWidth: 400, idealWidth: 550, maxWidth: .infinity, maxHeight: .infinity)
+                .layoutPriority(1)
+            if showStructureEditor {
+                JSONPreviewView(nodes: nodes, errorMessage: errorMessage, source: rawJSON) { edit in
+                    _ = try edit.applying(to: rawJSON)
+                    pendingFieldEdit = edit
+                }
+                    .frame(minWidth: 260, idealWidth: 400, maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
@@ -117,7 +126,9 @@ struct ContentView: View {
             navigateToPath: $navigateToPath,
             currentCursorPath: $currentCursorPath,
             hasUnsavedChanges: $hasUnsavedChanges,
-            characterCount: $characterCount
+            characterCount: $characterCount,
+            pendingFieldEdit: $pendingFieldEdit,
+            fieldEditError: $fieldEditError
         )
         .id(editorRefreshID)
     }
@@ -140,6 +151,20 @@ struct ContentView: View {
             Spacer()
         }
         ToolbarItemGroup(placement: .automatic) {
+            Button {
+                showTreeSidebar.toggle()
+            } label: {
+                Label("Tree Sidebar", systemImage: "sidebar.left")
+                    .foregroundStyle(showTreeSidebar ? Color.accentColor : Color.primary)
+            }
+            .help(showTreeSidebar ? "Hide tree sidebar" : "Show tree sidebar")
+            Button {
+                showStructureEditor.toggle()
+            } label: {
+                Label("Structure Editor", systemImage: "sidebar.right")
+                    .foregroundStyle(showStructureEditor ? Color.accentColor : Color.primary)
+            }
+            .help(showStructureEditor ? "Hide structure editor" : "Show structure editor")
             Button(action: { appearanceMode = appearanceMode.toggled() }) {
                 Label(appearanceMode.isLight ? "Dark Mode" : "Light Mode", systemImage: appearanceMode.icon)
             }

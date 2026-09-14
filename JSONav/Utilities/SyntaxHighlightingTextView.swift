@@ -5,6 +5,8 @@ struct SyntaxHighlightingTextView: NSViewRepresentable {
     @Binding var isValid: Bool
     @Binding var navigateToPath: [String]?
     @Binding var currentCursorPath: [String]
+    @Binding var pendingFieldEdit: JSONSourceEdit?
+    @Binding var fieldEditError: String?
     var onTextChange: (String) -> Void
     
     func makeNSView(context: Context) -> NSScrollView {
@@ -32,6 +34,21 @@ struct SyntaxHighlightingTextView: NSViewRepresentable {
     
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
+        context.coordinator.parent = self
+
+        if let edit = pendingFieldEdit {
+            // Route structure edits through NSTextView so its normal undo and change
+            // notifications update rawJSON, dirty state and both tree views together.
+            DispatchQueue.main.async {
+                guard context.coordinator.parent.pendingFieldEdit?.id == edit.id else { return }
+                context.coordinator.parent.pendingFieldEdit = nil
+                do {
+                    try Self.applyFieldEdit(edit, to: textView)
+                } catch {
+                    context.coordinator.parent.fieldEditError = error.localizedDescription
+                }
+            }
+        }
         
         if let path = navigateToPath {
             DispatchQueue.main.async {
@@ -57,6 +74,16 @@ struct SyntaxHighlightingTextView: NSViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
+
+    static func applyFieldEdit(_ edit: JSONSourceEdit, to textView: NSTextView) throws {
+        let result = try edit.applying(to: textView.string)
+        guard result != textView.string else { return }
+        textView.breakUndoCoalescing()
+        textView.insertText(edit.replacement, replacementRange: edit.range)
+        textView.breakUndoCoalescing()
+        textView.undoManager?.setActionName("Edit JSON Field")
+        textView.window?.makeFirstResponder(textView)
+    }
     
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: SyntaxHighlightingTextView
@@ -68,6 +95,19 @@ struct SyntaxHighlightingTextView: NSViewRepresentable {
         
         init(_ parent: SyntaxHighlightingTextView) {
             self.parent = parent
+            super.init()
+            NotificationCenter.default.addObserver(self, selector: #selector(undoRedoDidChange(_:)),
+                                                   name: .NSUndoManagerDidUndoChange, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(undoRedoDidChange(_:)),
+                                                   name: .NSUndoManagerDidRedoChange, object: nil)
+        }
+
+        @objc private func undoRedoDidChange(_ notification: Notification) {
+            // Undo can change NSTextStorage without a textDidChange delegate callback
+            // when focus is in the structure editor. Keep the source binding in sync.
+            guard let textView, let manager = notification.object as? UndoManager,
+                  manager === textView.undoManager, parent.text != textView.string else { return }
+            textDidChange(Notification(name: NSText.didChangeNotification, object: textView))
         }
         
         func textDidBeginEditing(_ notification: Notification) {

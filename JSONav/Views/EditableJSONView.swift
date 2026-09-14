@@ -9,6 +9,8 @@ struct EditableJSONView: View {
     @Binding var currentCursorPath: [String]
     @Binding var hasUnsavedChanges: Bool
     @Binding var characterCount: Int
+    @Binding var pendingFieldEdit: JSONSourceEdit?
+    @Binding var fieldEditError: String?
     
     @State private var isValid = true
     @State private var debounceTask: Task<Void, Never>?
@@ -21,6 +23,14 @@ struct EditableJSONView: View {
             editorView
         }
         .onAppear { characterCount = rawJSON.count }
+        .alert("Could not edit field", isPresented: Binding(
+            get: { fieldEditError != nil },
+            set: { if !$0 { fieldEditError = nil } }
+        )) {
+            Button("OK") { fieldEditError = nil }
+        } message: {
+            Text(fieldEditError ?? "")
+        }
     }
     
     private var statusBar: some View {
@@ -73,6 +83,8 @@ struct EditableJSONView: View {
             isValid: $isValid,
             navigateToPath: $navigateToPath,
             currentCursorPath: $currentCursorPath,
+            pendingFieldEdit: $pendingFieldEdit,
+            fieldEditError: $fieldEditError,
             onTextChange: handleTextChange
         )
     }
