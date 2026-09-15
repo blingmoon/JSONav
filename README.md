@@ -1,17 +1,21 @@
-# JSON Editor
+# JSONav Personal
 
-A lightweight, native macOS JSON editor built with SwiftUI.
+A personal fork of [brettnielsen/JSONav](https://github.com/brettnielsen/JSONav),
+with a native three-pane JSON editor and command-line import.
 
-![macOS](https://img.shields.io/badge/macOS-13.0%2B-blue?logo=apple)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift)
-![License](https://img.shields.io/badge/license-MIT-green)
+![macOS](https://img.shields.io/badge/macOS-26.2%2B-blue?logo=apple)
+![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-orange?logo=swift)
+![License](https://img.shields.io/badge/license-GPLv3-green)
 
 <p align="center">
-  <img src="docs/screenshots/lightmode.png" width="800" alt="JSON Editor in Light Mode">
+  <img src="docs/screenshots/personal-light.png" width="800" alt="JSONav Personal: tree navigation, source editor and structured preview">
 </p>
 
 ## Features
 
+- **Three Panes** — Tree navigation, editable JSON source, and a foldable structure editor
+- **Inline Field Editing** — Click an existing key or scalar value to edit it in place
+- **Optional Sidebars** — Hide the tree or structure pane independently; drag dividers to resize
 - **Tree View Navigation** — Collapsible sidebar displays your JSON structure at a glance
 - **Syntax Highlighting** — Color-coded keys, strings, numbers, booleans, and nulls
 - **Real-time Validation** — Instant feedback as you type with valid/invalid status
@@ -21,23 +25,28 @@ A lightweight, native macOS JSON editor built with SwiftUI.
 - **Dark Mode** — Full support for light and dark appearances
 - **Drag & Drop** — Drop JSON files directly into the window
 - **Native macOS** — Proxy icons, document editing state, keyboard shortcuts
+- **Command-line Import (personal fork)** — Import JSON text, stdin or files into the running app with unsaved-document protection
 
 ## Installation
 
 ### Requirements
 
-- macOS 13.0 (Ventura) or later
-- Xcode 15.0 or later
+- Current project deployment target: **macOS 26.2 or later**.
+- Local builds have been verified with **Xcode 26.6** on Apple Silicon.
+- Xcode is needed to build; running an already-built app does not require Xcode.
+- Older macOS/Xcode compatibility has not been validated for this personal fork.
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/yourusername/json-editor.git
-cd json-editor
+git clone --branch codex/personal https://github.com/blingmoon/JSONav.git
+cd JSONav
 open JSONav.xcodeproj
 ```
 
-Build and run with `⌘R` in Xcode.
+Build and run with `⌘R` in Xcode, or use the personal build scripts below for
+separate Personal/Test installations. The clone command selects the personal
+branch; `main` keeps the upstream baseline.
 
 ## Usage
 
@@ -46,6 +55,9 @@ Build and run with `⌘R` in Xcode.
 | New File | `⌘N` |
 | Open File | `⌘O` |
 | Save | `⌘S` |
+| Show/hide tree sidebar | Left-sidebar toolbar button |
+| Show/hide structure editor | Right-sidebar toolbar button |
+| Apply/cancel inline edit | `Return` / `Escape` |
 | Toggle Dark Mode | Toolbar button |
 
 ### Tree View
@@ -58,7 +70,8 @@ The left panel shows your JSON as a navigable tree:
 
 ### Editor
 
-The right panel is a full-featured text editor:
+The middle panel is the JSON source editor (the rightmost panel is the optional
+structure editor):
 
 - Syntax highlighting updates as you type
 - Cursor position syncs with the tree view
@@ -110,6 +123,72 @@ Intermediate bundles and previous installations stay in `build/*.noindex`.
 Open the installed apps directly from Applications; no build-folder navigation is
 needed. The script does not change the system's selected developer directory.
 
+### Command-line import (personal v0.2.0)
+
+The companion `jsonav` command accepts JSON as an argument, from stdin, or from a
+file. It launches the selected app when necessary and also delivers new content
+when the app is already running or its editor window is closed.
+
+Install the test app and command from this checkout:
+
+```sh
+bash scripts/build-local.sh test
+bash scripts/build-cli.sh
+```
+
+The command is installed at `~/.local/bin/jsonav`. If that directory is not on
+PATH, use the full path as in these examples; shell configuration is not changed.
+
+```sh
+# Pass text directly (quote it for your shell)
+~/.local/bin/jsonav --test --json '{"name":"demo-user","items":[1,2,3]}'
+
+# Import a file as a new unsaved document; the source file is not modified
+~/.local/bin/jsonav --test --file data.json
+
+# Read stdin until EOF; suitable for large or multiline content
+cat data.json | ~/.local/bin/jsonav --test
+
+# Allow more time for a user confirmation
+~/.local/bin/jsonav --test --timeout 300 --file data.json
+
+~/.local/bin/jsonav --help
+```
+
+`--test` targets **JSONav Personal Test** in `~/Applications`. Without it, the
+command targets **JSONav Personal** in `/Applications`. Both identities are
+checked explicitly; the default JSON file association is not used. Update the
+daily app with `bash scripts/build-local.sh release` before omitting `--test`:
+older versions without import support are refused. Rebuild the app and command
+locally when setting up another Mac.
+
+- Input must be UTF-8, at most **10 MiB**. Use stdin or a file for large input;
+  command-line arguments are additionally subject to shell/OS size limits. The
+  limit is not a rendering-performance guarantee for every JSON shape.
+- Original text, whitespace and field order are retained without automatic
+  formatting. Invalid JSON remains editable with an error. Tree/structure panes
+  keep their existing sorted display.
+- Imports are **Untitled, unsaved documents**. Save asks for a destination rather
+  than writing back to the source or temporary handoff file.
+- Unsaved edits require confirmation before replacement. There is one pending
+  buffer; a new arrival asks whether to replace that buffer. Further requests
+  during that decision are rejected explicitly, not silently queued or dropped.
+- The command waits for the app's result. Default timeout is **120 seconds**;
+  `--timeout` overrides it. A timeout does not cancel a pending import: the command
+  reports the retained handoff path, which must not be deleted while still in use.
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Imported into the document; not saved to disk |
+| `1` | Failure |
+| `2` | Cancelled, replaced, or rejected because the receiver is busy |
+| `3` | Timeout; the request may still complete |
+
+Internally the command uses a private handoff file and macOS file-open events,
+then reads the app's receipt before cleaning up its own file. No custom URL
+scheme, clipboard read, or network service is involved. See [CLI import](docs/cli-import.md)
+for the protocol, cleanup rules and acceptance checks.
+
 ### Personal fork maintenance
 
 - `main` retains the upstream baseline; keep personal changes on `codex/personal`.
@@ -124,37 +203,51 @@ needed. The script does not change the system's selected developer directory.
 
 ## Project Structure
 
-```
-JSONEditor/
-├── JSONavApp.swift           # App entry point
-├── Models/
-│   ├── AppearanceMode.swift      # Light/dark mode handling
-│   ├── JSONNode.swift            # Tree node model
-│   └── JSONParser.swift          # JSON to tree conversion
-├── Views/
-│   ├── ContentView.swift         # Main layout
-│   ├── TreeView.swift            # Sidebar tree
-│   ├── EditableJSONView.swift    # Editor panel
-│   └── SupportingViews.swift     # Shared components
-└── Utilities/
-    ├── JSONSyntaxHighlighter.swift
-    ├── SyntaxHighlightingTextView.swift
-    └── Extensions.swift
+```text
+JSONav/
+├── JSONav/
+│   ├── JSONavApp.swift             # App lifecycle and file-open entry point
+│   ├── Models/                    # Parsing, exact-token edits, import protocol/buffer
+│   ├── Views/                     # Three panes, inline editing and import prompts
+│   └── Utilities/                 # Native text editor and syntax highlighting
+├── CLI/main.swift                 # jsonav command and delivery receipts
+├── config/                        # Personal version and local sandbox entitlements
+├── scripts/                       # Build, regression checks and documentation captures
+├── Tests/                         # Parser, editing, import and SwiftUI regressions
+└── docs/cli-import.md              # External import contract and acceptance checks
 ```
 
 ## Screenshots
 
-<p align="center">
-  <img src="docs/screenshots/darkmode.png" width="800" alt="JSON Editor in Dark Mode">
-</p>
+These v0.2.0 content-view captures use production SwiftUI views and synthetic
+sample JSON. They omit the macOS window title bar and toolbar. The inline image
+is a close-up of the actual field-editing component. No private documents are used.
 
-<p align="center">
-  <img src="docs/screenshots/validation.png" width="800" alt="Real-time Validation">
-</p>
+**Three panes, light appearance.** The middle editor keeps the imported text and
+field order; the right pane displays a sorted, foldable structure. The tree and
+structure sidebars can be hidden independently using the app toolbar.
 
-<p align="center">
-  <img src="docs/screenshots/compact.png" width="800" alt=“Compact view">
-</p>
+![Three-pane JSONav Personal content view](docs/screenshots/personal-light.png)
+
+**Inline editing.** Click a key or scalar value; Return or ✓ commits, Escape or ×
+cancels. Add/remove fields and edit whole containers in the middle source editor.
+
+![Inline editing of task_id with type selection and apply/cancel controls](docs/screenshots/personal-inline.png)
+
+**Dark appearance.** The same source editor and structure view in dark mode.
+
+![Three-pane content view in dark mode](docs/screenshots/personal-dark.png)
+
+**Invalid external input remains editable.** Import does not discard malformed
+JSON. The source stays visible with an error, while the tree/structure view clears
+until the text is fixed. See [command-line examples](#command-line-import-personal-v020)
+for text, stdin and file input.
+
+![Invalid JSON retained in the editor with validation errors](docs/screenshots/personal-invalid.png)
+
+Regenerate these images from the repository root with `bash scripts/render-docs.sh`
+(requires Xcode and a macOS GUI session). The renderer uses isolated sample windows
+and preferences, not the installed Personal/Test app sessions.
 
 ## Contributing
 
