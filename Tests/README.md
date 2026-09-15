@@ -31,3 +31,14 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swiftc \
   -o build/preview-tests/regression
 build/preview-tests/regression
 ```
+
+`JSONImportTests` covers delivery before the view exists, exact Unicode and multiline
+text, invalid JSON preservation, a single pending slot, accepting/rejecting buffer
+replacement, rejecting further arrivals during a decision, cancellation, quit,
+duplicate delivery, and the 10 MiB text limit. It tests the protocol and controller;
+real app sandbox delivery and window lifecycle require the manual checks in
+`docs/cli-import.md`.
+
+`JSONImportViewTests` hosts the real ContentView and checks that its unsaved-state
+binding keeps subsequent imports buffered, including after accepting an earlier
+import. It uses a disposable app identity, not either installed app.

@@ -22,7 +22,10 @@ struct EditableJSONView: View {
             Divider()
             editorView
         }
-        .onAppear { characterCount = rawJSON.count }
+        .onAppear {
+            characterCount = rawJSON.count
+            isValid = errorMessage == nil
+        }
         .alert("Could not edit field", isPresented: Binding(
             get: { fieldEditError != nil },
             set: { if !$0 { fieldEditError = nil } }

@@ -2,6 +2,8 @@ import SwiftUI
 internal import UniformTypeIdentifiers
 
 struct ContentView: View {
+    @ObservedObject private var imports = JSONImportController.shared
+    @Environment(\.openWindow) private var openWindow
     @State private var nodes: [JSONNode] = []
     @State private var displayNodes: [JSONNode] = []
     @State private var rawJSON = ""
@@ -26,7 +28,7 @@ struct ContentView: View {
     var body: some View {
         mainContent
             .toolbar { toolbarContent }
-            .navigationTitle(fileName)
+            .navigationTitle(hasUnsavedChanges ? "\(fileName) — Edited" : fileName)
             .background(windowAccessor)
             .safeAreaInset(edge: .bottom, spacing: 0) { footerBar }
             .onReceive(NotificationCenter.default.publisher(for: .newFile)) { _ in newFile() }
@@ -34,6 +36,23 @@ struct ContentView: View {
             .onReceive(NotificationCenter.default.publisher(for: .openFileURL)) { notification in
                 if let url = notification.object as? URL { loadFile(url) }
             }
+            .onAppear {
+                imports.wakeWindow = { openWindow(id: "main") }
+                imports.canImport = { !hasUnsavedChanges && !showUnsavedAlert }
+                imports.importText = importExternalText
+                imports.ordinaryFile = loadFile
+                imports.viewReady()
+            }
+            .onChange(of: showUnsavedAlert) { _, showing in
+                if !showing { imports.processIfReady() }
+            }
+            .sheet(isPresented: Binding(get: { imports.needsDecision && !showUnsavedAlert }, set: { _ in })) {
+                JSONImportPrompt(imports: imports)
+            }
+            .alert("External Import", isPresented: Binding(
+                get: { imports.failure != nil }, set: { if !$0 { imports.failure = nil } }
+            )) { Button("OK") { imports.failure = nil } }
+            message: { Text(imports.failure ?? "") }
             .onDrop(of: [.fileURL], isTargeted: nil) { handleDrop($0) }
             .alert("Unsaved Changes", isPresented: $showUnsavedAlert) {
                 Button("Cancel", role: .cancel) {
@@ -145,7 +164,7 @@ struct ContentView: View {
             Button(action: saveFile) {
                 Label("Save", systemImage: "square.and.arrow.down")
             }
-            .disabled(rawJSON.isEmpty)
+            .disabled(rawJSON.isEmpty && !hasUnsavedChanges)
         }
         ToolbarItem(placement: .automatic) {
             Spacer()
@@ -189,6 +208,31 @@ struct ContentView: View {
         .background(.bar)
     }
     
+    private func importExternalText(_ text: String) {
+        // Import is a new, unsaved text document; never bind Save to the transport file.
+        rawJSON = text
+        fileName = "Untitled"
+        fileURL = nil
+        hasUnsavedChanges = true
+        characterCount = text.count
+        pendingFieldEdit = nil
+        fieldEditError = nil
+        pendingFileURL = nil
+        navigateToPath = nil
+        currentCursorPath = []
+        searchText = ""
+        do {
+            nodes = try JSONParser.parse(Data(text.utf8))
+            displayNodes = nodes
+            errorMessage = nil
+        } catch {
+            nodes = []
+            displayNodes = []
+            errorMessage = "Invalid JSON: \(error.localizedDescription)"
+        }
+        editorRefreshID = UUID()
+    }
+
     private func newFile() {
         if hasUnsavedChanges {
             pendingFileURL = nil

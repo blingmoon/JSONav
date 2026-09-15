@@ -49,10 +49,12 @@ struct JSONEditorApp: App {
     }
 }
 class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillTerminate(_ notification: Notification) {
+        JSONImportController.shared.shutdown()
+    }
+
     func application(_ application: NSApplication, open urls: [URL]) {
-        if let url = urls.first {
-            NotificationCenter.default.post(name: .openFileURL, object: url)
-        }
+        for url in urls { JSONImportController.shared.receive(url) }
     }
 }
 

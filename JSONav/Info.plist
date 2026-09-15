@@ -18,6 +18,40 @@
 				<string>public.json</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>JSONav Import</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>local.blingmoon.jsonav.import</string>
+			</array>
+		</dict>
+	</array>
+	<key>JSONavImportProtocolVersion</key>
+	<integer>1</integer>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>JSONav import request</string>
+			<key>UTTypeIdentifier</key>
+			<string>local.blingmoon.jsonav.import</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>jsonav-import</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 </dict>
 </plist>
