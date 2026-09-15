@@ -39,14 +39,14 @@ with a native three-pane JSON editor and command-line import.
 ### Build from Source
 
 ```bash
-git clone --branch codex/personal https://github.com/blingmoon/JSONav.git
+git clone https://github.com/blingmoon/JSONav.git
 cd JSONav
 open JSONav.xcodeproj
 ```
 
 Build and run with `⌘R` in Xcode, or use the personal build scripts below for
-separate Personal/Test installations. The clone command selects the personal
-branch; `main` keeps the upstream baseline.
+separate Personal/Test installations. Personal features are maintained on
+`codex/personal`; `main` keeps the upstream baseline.
 
 ## Usage
 
