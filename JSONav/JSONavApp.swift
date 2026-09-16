@@ -8,7 +8,7 @@ struct JSONEditorApp: App {
     
     var body: some Scene {
         MenuBarExtra {
-            Button("Open JSON Editor") {
+            Button("Open JSONLook") {
                 openWindow(id: "main")
                 NSApp.activate(ignoringOtherApps: true)
             }
@@ -24,7 +24,7 @@ struct JSONEditorApp: App {
             Image(systemName: "curlybraces")
         }
         
-        Window("JSON Editor", id: "main") {
+        Window("JSONLook", id: "main") {
             ContentView(appearanceMode: $appearanceMode)
                 .preferredColorScheme(appearanceMode.colorScheme)
         }

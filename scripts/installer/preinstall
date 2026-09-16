@@ -1,0 +1,46 @@
+#!/bin/bash
+set -euo pipefail
+# Installer runs as root. Never execute commands from a user's home directory.
+if [[ "${3:-/}" != / ]]; then
+  echo 'JSONLook must be installed on the currently running system.' >&2
+  exit 1
+fi
+if [[ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/dev/null || true)" != 1 ]]; then
+  echo 'JSONLook requires an Apple Silicon Mac.' >&2
+  exit 1
+fi
+version=$(/usr/bin/sw_vers -productVersion)
+major=${version%%.*}
+minor=${version#*.}; minor=${minor%%.*}
+if (( major < 26 || (major == 26 && minor < 2) )); then
+  echo 'JSONLook requires macOS 26.2 or later.' >&2
+  exit 1
+fi
+if /usr/bin/pgrep -f '/(JSONLook|JSONav Personal)\.app/Contents/MacOS/' >/dev/null; then
+  echo 'Save your work and quit JSONLook / JSONav Personal before installing.' >&2
+  exit 1
+fi
+# Do not let Installer follow a pre-existing destination symlink.
+for path in /Applications/JSONLook.app /usr/local/bin/jsonlook; do
+  if [[ -L "$path" ]]; then
+    echo "Move the existing symlink aside before installing: $path" >&2
+    exit 1
+  fi
+done
+if [[ -e /Applications/JSONLook.app ]]; then
+  identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' /Applications/JSONLook.app/Contents/Info.plist)
+  [[ "$identifier" == local.blingmoon.JSONav.personal ]] || { echo 'A different app occupies /Applications/JSONLook.app.' >&2; exit 1; }
+fi
+# A system installer cannot safely identify or replace arbitrary per-user tools.
+# Refuse a known conflicting location and explain migration rather than hiding it.
+console_user=$(/usr/bin/stat -f %Su /dev/console)
+if [[ "$console_user" != root && "$console_user" != loginwindow ]]; then
+  user_home=$(/usr/bin/dscl . -read "/Users/$console_user" NFSHomeDirectory | /usr/bin/sed 's/^NFSHomeDirectory: //')
+  for command_name in jsonlook jsonav; do
+    legacy="$user_home/.local/bin/$command_name"
+    if [[ -e "$legacy" || -L "$legacy" ]]; then
+      echo "Move $legacy to a backup location, or migrate using scripts/build-cli.sh from the original checkout, then retry." >&2
+      exit 1
+    fi
+  done
+fi

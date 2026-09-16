@@ -1,14 +1,17 @@
-# JSONav Personal
+# JSONLook
 
-A personal fork of [brettnielsen/JSONav](https://github.com/brettnielsen/JSONav),
-with a native three-pane JSON editor and command-line import.
+Formerly **JSONav Personal**. A personal fork of [brettnielsen/JSONav](https://github.com/brettnielsen/JSONav),
+with a native three-pane JSON editor and command-line import. This is an
+independently maintained fork, not an official release of the upstream project.
+JSONLook starts its own release numbering at **0.0.1**; earlier Personal builds
+used a separate development version sequence.
 
 ![macOS](https://img.shields.io/badge/macOS-26.2%2B-blue?logo=apple)
 ![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-orange?logo=swift)
 ![License](https://img.shields.io/badge/license-GPLv3-green)
 
 <p align="center">
-  <img src="docs/screenshots/personal-light.png" width="800" alt="JSONav Personal: tree navigation, source editor and structured preview">
+  <img src="docs/screenshots/personal-light.png" width="800" alt="JSONLook: tree navigation, source editor and structured preview">
 </p>
 
 ## Features
@@ -32,7 +35,7 @@ with a native three-pane JSON editor and command-line import.
 ### Requirements
 
 - Current project deployment target: **macOS 26.2 or later**.
-- Local builds have been verified with **Xcode 26.6** on Apple Silicon.
+- Local builds have been verified with **Xcode 27.0** on Apple Silicon.
 - Xcode is needed to build; running an already-built app does not require Xcode.
 - Older macOS/Xcode compatibility has not been validated for this personal fork.
 
@@ -44,9 +47,10 @@ cd JSONav
 open JSONav.xcodeproj
 ```
 
-Build and run with `⌘R` in Xcode, or use the personal build scripts below for
-separate Personal/Test installations. Personal features are maintained on
-`codex/personal`; `main` keeps the upstream baseline.
+Use the build scripts below for the supported daily/Test installations.
+Opening the project in Xcode is useful for development, but direct `⌘R` builds
+retain upstream project signing/bundle settings and are not the packaged channels. Develop changes on a feature branch and merge
+validated changes into your own `main` before tagging a release.
 
 ## Usage
 
@@ -54,7 +58,7 @@ separate Personal/Test installations. Personal features are maintained on
 |--------|----------|
 | New File | `⌘N` |
 | Open File | `⌘O` |
-| Save | `⌘S` |
+| Save | Save toolbar button |
 | Show/hide tree sidebar | Left-sidebar toolbar button |
 | Show/hide structure editor | Right-sidebar toolbar button |
 | Apply/cancel inline edit | `Return` / `Escape` |
@@ -108,8 +112,8 @@ With Xcode installed:
 
 ```sh
 bash scripts/test-local.sh          # Regression tests
-bash scripts/build-local.sh test    # Install ~/Applications/JSONav Personal Test.app
-bash scripts/build-local.sh release # Install /Applications/JSONav Personal.app
+bash scripts/build-local.sh test    # Install ~/Applications/JSONLook Test.app
+bash scripts/build-local.sh release # Install /Applications/JSONLook.app
 ```
 
 The default channel is `test`. Both channels use optimized Release builds with
@@ -117,15 +121,21 @@ local ad-hoc signatures and sandbox/user-selected-file access, without debug
 entitlements. Their separate bundle identifiers isolate preferences and sandbox
 data; the release identifier stays unchanged from the earlier personal app.
 Quit the target app before installation to protect unsaved input. Installing
-release also archives the former `~/Applications/JSONav Personal.app`.
+release archives matching old **JSONav Personal** installations; test builds archive
+**JSONav Personal Test**. Bundle identifiers stay unchanged to retain existing
+preferences and sandbox data.
 
 Intermediate bundles and previous installations stay in `build/*.noindex`.
 Open the installed apps directly from Applications; no build-folder navigation is
 needed. The script does not change the system's selected developer directory.
 
-### Command-line import (personal v0.2.0)
+### Command-line import
 
-The companion `jsonav` command accepts JSON as an argument, from stdin, or from a
+The renamed command is **`jsonlook`** (formerly `jsonav`). Update external callers
+to use the new name. `build-cli.sh` archives a matching old command built by this
+checkout; it leaves unrelated/custom executables untouched.
+
+The companion `jsonlook` command accepts JSON as an argument, from stdin, or from a
 file. It launches the selected app when necessary and also delivers new content
 when the app is already running or its editor window is closed.
 
@@ -136,31 +146,31 @@ bash scripts/build-local.sh test
 bash scripts/build-cli.sh
 ```
 
-The command is installed at `~/.local/bin/jsonav`. If that directory is not on
+The command is installed at `/usr/local/bin/jsonlook`. If that directory is not on
 PATH, use the full path as in these examples; shell configuration is not changed.
 
 ```sh
 # Pass text directly (quote it for your shell)
-~/.local/bin/jsonav --test --json '{"name":"demo-user","items":[1,2,3]}'
+/usr/local/bin/jsonlook --test --json '{"name":"demo-user","items":[1,2,3]}'
 
 # Import a file as a new unsaved document; the source file is not modified
-~/.local/bin/jsonav --test --file data.json
+/usr/local/bin/jsonlook --test --file data.json
 
 # Read stdin until EOF; suitable for large or multiline content
-cat data.json | ~/.local/bin/jsonav --test
+cat data.json | /usr/local/bin/jsonlook --test
 
 # Allow more time for a user confirmation
-~/.local/bin/jsonav --test --timeout 300 --file data.json
+/usr/local/bin/jsonlook --test --timeout 300 --file data.json
 
-~/.local/bin/jsonav --help
+/usr/local/bin/jsonlook --help
 ```
 
-`--test` targets **JSONav Personal Test** in `~/Applications`. Without it, the
-command targets **JSONav Personal** in `/Applications`. Both identities are
+`--test` targets **JSONLook Test** in `~/Applications`. Without it, the
+command targets **JSONLook** in `/Applications`. Both identities are
 checked explicitly; the default JSON file association is not used. Update the
 daily app with `bash scripts/build-local.sh release` before omitting `--test`:
-older versions without import support are refused. Rebuild the app and command
-locally when setting up another Mac.
+older versions without import support are refused. On another supported Mac, install the combined release package; rebuilding
+from source is optional.
 
 - Input must be UTF-8, at most **10 MiB**. Use stdin or a file for large input;
   command-line arguments are additionally subject to shell/OS size limits. The
@@ -189,17 +199,36 @@ then reads the app's receipt before cleaning up its own file. No custom URL
 scheme, clipboard read, or network service is involved. See [CLI import](docs/cli-import.md)
 for the protocol, cleanup rules and acceptance checks.
 
-### Personal fork maintenance
+### Install a release (no Xcode required)
 
-- `main` retains the upstream baseline; keep personal changes on `codex/personal`.
-- Commit and test changes on `codex/personal`, then install the test channel for
-  interactive checks. Build the release channel from the validated commit.
-- Set the personal version in `config/PersonalVersion.txt`. Mark a validated
-  stable commit with an annotated tag such as `personal-v0.1.0`.
-- Future upstream updates should first update `main`, then merge `main` into
-  `codex/personal` and resolve any conflicts before testing again.
-- Branches and tags are local until explicitly pushed. These local builds do not
-  create a GitHub Release or publish a downloadable asset.
+After a version is published on [GitHub Releases](https://github.com/blingmoon/JSONav/releases),
+download its `JSONLook-<version>-macos-arm64.pkg` and open the installer. It installs
+both `/Applications/JSONLook.app` and `/usr/local/bin/jsonlook`. Requires Apple
+Silicon and macOS 26.2 or later. Save your work and quit JSONLook before upgrading.
+JSONLook Test is not replaced. The installer may ask for an administrator password.
+
+The package is unsigned and not notarized; macOS may require manual approval in
+Privacy & Security. The app and CLI retain ad-hoc signatures and the app sandbox.
+This repository containing a workflow does not mean a release has already been published.
+
+For an existing source installation, first run the updated `scripts/build-cli.sh`
+from the original checkout. It installs the command at `/usr/local/bin/jsonlook`
+and archives matching older commands from `~/.local/bin`. It refuses to move
+unknown/custom commands. The package also detects conflicting old user commands;
+see [release and migration instructions](docs/releases.md).
+
+### Fork maintenance and releases
+
+- Develop and test on a feature branch, then merge validated changes into `main`.
+- Keep upstream updates in a separate integration branch and review them before
+  merging; `main` now represents this fork rather than the untouched upstream.
+- Update `config/PersonalVersion.txt`; push a matching `vX.Y.Z` tag on a commit
+  contained in `main` to trigger the **Release draft** GitHub Actions workflow.
+- The workflow tests, builds and verifies an arm64 installer, then uploads it with
+  a SHA-256 checksum to a draft. Review it on GitHub and click **Publish release**.
+- For a local package without installation, run `bash scripts/build-package.sh`.
+  Output: `build/packages/JSONLook-<version>-macos-arm64.pkg`.
+- Full instructions: [building and publishing](docs/releases.md).
 
 ## Project Structure
 
@@ -210,7 +239,7 @@ JSONav/
 │   ├── Models/                    # Parsing, exact-token edits, import protocol/buffer
 │   ├── Views/                     # Three panes, inline editing and import prompts
 │   └── Utilities/                 # Native text editor and syntax highlighting
-├── CLI/main.swift                 # jsonav command and delivery receipts
+├── CLI/main.swift                 # jsonlook command and delivery receipts
 ├── config/                        # Personal version and local sandbox entitlements
 ├── scripts/                       # Build, regression checks and documentation captures
 ├── Tests/                         # Parser, editing, import and SwiftUI regressions
@@ -219,7 +248,7 @@ JSONav/
 
 ## Screenshots
 
-These v0.2.0 content-view captures use production SwiftUI views and synthetic
+These content-view captures use production SwiftUI views and synthetic
 sample JSON. They omit the macOS window title bar and toolbar. The inline image
 is a close-up of the actual field-editing component. No private documents are used.
 
@@ -227,7 +256,7 @@ is a close-up of the actual field-editing component. No private documents are us
 field order; the right pane displays a sorted, foldable structure. The tree and
 structure sidebars can be hidden independently using the app toolbar.
 
-![Three-pane JSONav Personal content view](docs/screenshots/personal-light.png)
+![Three-pane JSONLook content view](docs/screenshots/personal-light.png)
 
 **Inline editing.** Click a key or scalar value; Return or ✓ commits, Escape or ×
 cancels. Add/remove fields and edit whole containers in the middle source editor.
@@ -240,14 +269,20 @@ cancels. Add/remove fields and edit whole containers in the middle source editor
 
 **Invalid external input remains editable.** Import does not discard malformed
 JSON. The source stays visible with an error, while the tree/structure view clears
-until the text is fixed. See [command-line examples](#command-line-import-personal-v020)
+until the text is fixed. See [command-line examples](#command-line-import)
 for text, stdin and file input.
 
 ![Invalid JSON retained in the editor with validation errors](docs/screenshots/personal-invalid.png)
 
 Regenerate these images from the repository root with `bash scripts/render-docs.sh`
 (requires Xcode and a macOS GUI session). The renderer uses isolated sample windows
-and preferences, not the installed Personal/Test app sessions.
+and preferences, not the installed JSONLook / JSONLook Test app sessions.
+
+## Known limitations
+
+This release preparation includes a code review, not a claim that all editor
+behaviour is verified. See [known issues](docs/known-issues.md), especially
+formatting dirty-state tracking and delayed validation across document changes.
 
 ## Contributing
 
@@ -265,4 +300,7 @@ GPL-v3 License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-Built with SwiftUI and AppKit for macOS.
+Original JSONav by [Brett Nielsen](https://github.com/brettnielsen), built with
+SwiftUI and AppKit. JSONLook adds the structure editor, inline field editing,
+command-line import, and separate build/release tooling. The original repository
+and its history are retained; see [brettnielsen/JSONav](https://github.com/brettnielsen/JSONav).

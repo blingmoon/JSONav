@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 // A separate documentation process renders production views with synthetic data.
-// It never opens files in the installed Personal/Test apps or changes their defaults.
+// It never opens files in the installed JSONLook / JSONLook Test apps or changes their defaults.
 extension Notification.Name {
     static let newFile = Notification.Name("newFile")
     static let openFile = Notification.Name("openFile")

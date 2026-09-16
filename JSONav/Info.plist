@@ -20,7 +20,7 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>JSONav Import</string>
+			<string>JSONLook Import</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -41,7 +41,7 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>JSONav import request</string>
+			<string>JSONLook import request</string>
 			<key>UTTypeIdentifier</key>
 			<string>local.blingmoon.jsonav.import</string>
 			<key>UTTypeTagSpecification</key>

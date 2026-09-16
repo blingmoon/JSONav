@@ -48,7 +48,7 @@ final class JSONImportController: ObservableObject {
         do {
             let request = try JSONImportEnvelope.read(url)
             guard request.target == targetIdentifier else {
-                throw ImportError("This request targets a different JSONav app")
+                throw ImportError("This request targets a different JSONLook app")
             }
             // Re-delivery of the same opened file must not import it twice.
             guard request.status == .submitted else {
@@ -118,8 +118,8 @@ final class JSONImportController: ObservableObject {
     }
 
     func shutdown() {
-        if let replacement { finish(replacement, as: .failed, message: "JSONav quit before resolving this request") }
-        if let pending { finish(pending, as: .failed, message: "JSONav quit before importing this request") }
+        if let replacement { finish(replacement, as: .failed, message: "JSONLook quit before resolving this request") }
+        if let pending { finish(pending, as: .failed, message: "JSONLook quit before importing this request") }
         replacement = nil
         pending = nil
     }

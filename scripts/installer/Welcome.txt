@@ -1,0 +1,15 @@
+JSONLook — app and command-line tool
+
+Requires an Apple Silicon Mac and macOS 26.2 or later. Xcode is not required.
+
+This installer installs both:
+  /Applications/JSONLook.app
+  /usr/local/bin/jsonlook
+
+Save your work and quit JSONLook before installation or upgrade. JSONLook Test is separate and will not be replaced.
+
+If you previously installed the command in ~/.local/bin, migrate it first by running scripts/build-cli.sh in your original checkout. Alternatively move ~/.local/bin/jsonlook (and jsonav if present) to a backup location before installing. The installer does not edit your shell configuration or user home files.
+
+The app uses an ad-hoc signature. This installer is not Developer ID signed or notarized. macOS may require you to allow it in Privacy & Security.
+
+JSONLook is a modified version of brettnielsen/JSONav, distributed under GPLv3. Source and release instructions: https://github.com/blingmoon/JSONav

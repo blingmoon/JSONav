@@ -1,0 +1,98 @@
+name: Release draft
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check version and main ancestry
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(cat config/PersonalVersion.txt)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$RELEASE_TAG" == "v$version" ]]
+          git merge-base --is-ancestor HEAD origin/main
+          [[ "$(uname -m)" == arm64 ]]
+          xcodebuild -version
+          xcrun swift --version
+      - name: Regression tests
+        run: bash scripts/test-local.sh
+      - name: Build app, command and installer
+        run: bash scripts/build-package.sh
+      - name: Install and smoke test on disposable runner
+        run: |
+          set -euo pipefail
+          version=$(cat config/PersonalVersion.txt)
+          sudo installer -pkg "build/packages/JSONLook-$version-macos-arm64.pkg" -target /
+          python3 scripts/verify-release.py /
+          /usr/local/bin/jsonlook --timeout 30 --json '{"name":"demo-user","source":"release-smoke-test"}'
+          # A second installation must not overwrite a running editor.
+          if bash scripts/installer/preinstall unused unused / > build/preinstall-check.log 2>&1; then
+            echo 'Running-app installation guard did not reject the upgrade.' >&2
+            exit 1
+          fi
+          grep -q 'Save your work and quit' build/preinstall-check.log
+      - name: Preserve build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-failure-logs
+          path: build/*.log
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: |
+            build/packages/*.pkg
+            build/packages/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-package
+          path: release-assets
+      - name: Create or refresh draft only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --json isDraft > release-state.json 2>/dev/null; then
+            [[ "$(jq -r .isDraft release-state.json)" == true ]] || {
+              echo 'Refusing to change an already published release.' >&2
+              exit 1
+            }
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft \
+              --title "JSONLook $RELEASE_TAG" --notes-file docs/release-notes-template.md
+          fi
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber

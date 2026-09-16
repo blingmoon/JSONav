@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		6CCA900F2F0C47BE0077216B /* JSONav.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JSONav.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6CCA900F2F0C47BE0077216B /* JSONLook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JSONLook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		6CCA90102F0C47BE0077216B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6CCA900F2F0C47BE0077216B /* JSONav.app */,
+				6CCA900F2F0C47BE0077216B /* JSONLook.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = jsonview;
-			productReference = 6CCA900F2F0C47BE0077216B /* JSONav.app */;
+			productReference = 6CCA900F2F0C47BE0077216B /* JSONLook.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -287,15 +287,15 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JSONav/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = JSONav;
+				INFOPLIST_KEY_CFBundleDisplayName = JSONLook;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = brett.JSONav;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = JSONLook;
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -330,15 +330,15 @@
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JSONav/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = JSONav;
+				INFOPLIST_KEY_CFBundleDisplayName = JSONLook;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = brett.JSONav;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = JSONLook;
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

@@ -1,22 +1,27 @@
 # External JSON import
 
-JSONav owns the `jsonav` command and the receiving app. Caller workflows and other
+JSONLook owns the `jsonlook` command and the receiving app. Caller workflows and other
 tools are outside this repository. No URL scheme, clipboard read or network service
-is used. Install the command on each Mac with Xcode:
+is used. Install the combined release `.pkg` on a supported Mac; Xcode is not
+required. To build the command and Test app from source with Xcode:
 
 ```sh
 bash scripts/build-cli.sh
 bash scripts/build-local.sh test
 ```
 
-The command is at `~/.local/bin/jsonav`. Use its full path if `~/.local/bin` is not
+The app is now **JSONLook** and the command is **`jsonlook`** (formerly JSONav
+Personal and `jsonav`). App bundle identifiers and the `jsonav-import` protocol
+remain unchanged so existing preferences and sandbox data are retained.
+
+The command is at `/usr/local/bin/jsonlook`. Use its full path if `/usr/local/bin` is not
 on PATH; the build does not change shell configuration. Use `--test` until the
 release app has been updated with `bash scripts/build-local.sh release`.
 
 ```sh
-~/.local/bin/jsonav --test --json '{"name":"demo-user","items":[1,2,3]}'
-~/.local/bin/jsonav --test --file data.json
-cat data.json | ~/.local/bin/jsonav --test
+/usr/local/bin/jsonlook --test --json '{"name":"demo-user","items":[1,2,3]}'
+/usr/local/bin/jsonlook --test --file data.json
+cat data.json | /usr/local/bin/jsonlook --test
 ```
 
 With no input option the command reads stdin until EOF. Use stdin or `--file` for
@@ -27,11 +32,11 @@ nodes can be expensive in the existing editor/preview. This feature does not
 redesign rendering or change existing parser numeric/fragment limitations.
 
 The default target is `local.blingmoon.JSONav.personal`; `--test` selects
-`local.blingmoon.JSONav.personal.test`. Preferred locations are `/Applications/JSONav
-Personal.app` and `~/Applications/JSONav Personal Test.app`. The command checks
+`local.blingmoon.JSONav.personal.test`. Preferred locations are
+`/Applications/JSONLook.app` and `~/Applications/JSONLook Test.app`. The command checks
 bundle identity and import protocol support before sending. It does not depend on
 the default JSON file association and will not send a request to an old app that
-lacks this feature. Build locally on each Mac for its native architecture.
+lacks this feature. Published packages currently support Apple Silicon only.
 
 ## Document behaviour
 
@@ -57,11 +62,11 @@ lacks this feature. Build locally on each Mac for its native architecture.
 The command creates a private unique temporary directory and a binary property-list
 `request.jsonav-import` envelope (version, UUID, target app, text, status, message).
 It opens this file in the explicitly selected app through NSWorkspace. AppKit file
-open events work for both cold launch and an already running process. JSONav reads
+open events work for both cold launch and an already running process. JSONLook reads
 and owns the text before acknowledging receipt; sandbox access to the opened file
 is retained until the final receipt. No JSON content is logged by the command.
 
-JSONav only updates the explicitly opened handoff file. It never deletes an input
+JSONLook only updates the explicitly opened handoff file. It never deletes an input
 file or writes to a response path embedded by the caller. The creating command
 polls the same file, validates its UUID/target, then deletes its own file/directory
 only after a terminal response. Buffered status does not mean imported.
@@ -77,7 +82,7 @@ Exit codes:
 
 The default timeout is 120 seconds; change it with `--timeout SECONDS`. Timeout
 and caller termination do not cancel the app's pending request. The handoff file
-is retained and its path is printed on timeout; do not delete it while JSONav may
+is retained and its path is printed on timeout; do not delete it while JSONLook may
 still need to write its receipt. Once a terminal status is present, retained test
 files may be removed. No age-based cleanup races the receiver. An app crash may
 leave a nonterminal file; its payload remains recoverable, but automatic resume
@@ -103,3 +108,6 @@ Use only the Test app and disposable data:
    MiB rejection, invalid UTF-8, empty input, timeout, and quit while buffered.
 6. Verify daily app identity/data are unaffected by `--test`, and that the old
    release is refused by the command until upgraded.
+
+For the combined app/CLI installer and migration from the old user-local command,
+see [release instructions](releases.md).
